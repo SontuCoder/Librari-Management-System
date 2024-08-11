@@ -65,7 +65,9 @@ class Signup:
             elif option == 8:
                 login_instance.forgot_pass_admin()
             elif option == 9:
+                print("Thank you for using our service.......")
                 print("Exiting...")
+                myDb.close()
                 break
             else:
                 print("Invalid option, please try again.")
@@ -82,7 +84,7 @@ class Signup:
             insert_value = (stu_id,password,std_name,std_class)
             db_cursor.execute(insert_query,insert_value)
             myDb.commit()
-            print("\nData stored successfully.\n")
+            print("\nSignup successfully.\n")
         
     def signup_admin(self):
         admin_id = input("\nEnter Admin id: ")
@@ -95,17 +97,16 @@ class Signup:
             insert_value = (admin_id,password,admin_name)
             db_cursor.execute(insert_query,insert_value)
             myDb.commit()
-            print("\nData stored successfully.\n")
+            print("\nSignup successfully.\n")
         
     def update_pass_student(self):
-        signup_instance=Signup()
         print("\n\n===========================")
         stu_id=input("Enter Id:-")
         old_pass=input("Enter old Password:-")
         new_pass=input("Enter New Password:-")
         print("===========================\n")
-        if(signup_instance.fetch_id_std(stu_id)==1):
-            if(signup_instance.fetch_pass_std(stu_id)==old_pass):
+        if(self.fetch_id_std(stu_id)==1):
+            if(self.fetch_pass_std(stu_id)==old_pass):
                 query = "UPDATE student SET pass = %s WHERE std_id = %s"
                 db_cursor.execute(query, (new_pass, stu_id))
                 myDb.commit()  
@@ -118,14 +119,13 @@ class Signup:
             return
         
     def update_pass_admin(self):
-        signup_instance=Signup()
         print("\n\n===========================")
         adm_id=input("Enter Id:-")
         old_pass=input("Enter old Password:-")
         new_pass=input("Enter New Password:-")
         print("===========================\n")
-        if(signup_instance.fetch_id_adm(adm_id)==1):
-            if(signup_instance.fetch_pass_adm(adm_id)==old_pass):
+        if(self.fetch_id_adm(adm_id)==1):
+            if(self.fetch_pass_adm(adm_id)==old_pass):
                 query = "UPDATE librarian SET pass = %s WHERE admin_id = %s"
                 db_cursor.execute(query, (new_pass, adm_id))
                 myDb.commit()  
@@ -137,25 +137,30 @@ class Signup:
         
 
 class Login:
-    signup_instance=Signup()
-    def login_student(self,signup_instance):
+    def login_student(self):
+        signup_instance=Signup()
+        student_instance=Student()
         stu_id = input("Enter Student id: ")
         password= input("Enter PassWord: ")
         if(signup_instance.fetch_id_std(stu_id)==1):
             if(signup_instance.fetch_pass_std(stu_id)==password):
                 print("ID and Pass is correct\n")
+                print("\nEntering Student Dashbord:-\n")
+                student_instance.student_option()
             else:
                 print("Pass is Wrong\n")
         else:
             print("Student ID is not found.\n")
             print("sign up first.\n")
         
-    def login_admin(self,signup_instance):
+    def login_admin(self):
+        signup_instance=Signup()
         library_instance=Library()
-        admin_id = input("Enter Student id: ")
+        admin_id = input("Enter Admin id: ")
         password= input("Enter PassWord: ")
         if(signup_instance.fetch_id_adm(admin_id)==1):
             if(signup_instance.fetch_pass_adm(admin_id)==password):
+                print("\nEntering Librarian Dashbord:-\n")
                 library_instance.admin_option()
             else:
                 print("Pass is Wrong\n")
@@ -164,11 +169,39 @@ class Login:
             print("sign up first.\n")
         
     def forgot_pass_student(self):
-        print("Forgot password as Student functionality here")
-        
+        signup_instance=Signup()
+        print("\n\n===========================")
+        print("Forgot password as Student:")
+        std_id=int(input("Enter the Id:-"))
+        name=input("Enter your name:")
+        std_class=int(input("Enter your class:"))
+        print("===========================\n")
+        if(signup_instance.fetch_id_std(std_id)):
+            db_cursor.execute("SELECT * FROM student WHERE std_id = %s", (std_id,))
+            all=db_cursor.fetchone()
+            if(all[2]==name and std_class==all[3]):
+                print(f"Your Password is: {all[1]}\n")
+            else:
+                print("Plase enter correct Data.\n")
+        else:
+            print("Plase enter correct Id.\n")
+
     def forgot_pass_admin(self):
-        print("Forgot password as Admin functionality here")
-        
+        signup_instance=Signup()
+        print("\n\n===========================")
+        print("Forgot password as Admin:")
+        adm_id=int(input("Enter Your Id:-"))
+        name=input("Enter your name:-")
+        print("===========================\n")
+        if(signup_instance.fetch_id_adm(adm_id)):
+            db_cursor.execute("SELECT * FROM librarian WHERE admin_id = %s", (adm_id,))
+            all=db_cursor.fetchone()
+            if(all[2]==name):
+                print(f"Your Password is: {all[1]}\n")
+            else:
+                print("Plase enter correct Data.\n")
+        else:
+            print("Plase enter correct Id.\n")
 
 class Library:
     def admin_option(self):
@@ -188,6 +221,7 @@ class Library:
                 self.display_existing_books()
             elif option == 4:
                 print("Exiting...")
+                print("\nEntering Main Dashbord:-\n")
                 return
             else:
                 print("Invalid option, please try again.")
@@ -198,7 +232,7 @@ class Library:
         for i in range(10):
             c.append(random.choice(a))
         b=''.join(c)
-        db_cursor.execute("SELECT book_id FROM bookList WHERE book_id = %s", (b))
+        db_cursor.execute("SELECT book_id FROM bookList WHERE book_id = %s", (b,))
         if(db_cursor.fetchone()):
             self.book_id_generator()
         return ''.join(c)
@@ -207,11 +241,14 @@ class Library:
         query = "SELECT student_borrow_book.student_id, student.std_name, student.class, student_borrow_book.book_id, bookList.book_name, student_borrow_book.borrow_date FROM student_borrow_book INNER JOIN student ON student_borrow_book.student_id = student.std_id INNER JOIN bookList ON student_borrow_book.book_id = bookList.book_id;"
         db_cursor.execute(query)
         borrowed_books = db_cursor.fetchall()
-        print("\n\n===========================")
-        print("The All books are:-\n")
-        for record in borrowed_books:
-            print(f"Student ID: {record[0]}, Name: {record[1]}, Class: {record[2]}, Book ID: {record[3]}, Book Name: {record[4]}, Borrow Date: {record[5]}")
-        print("===========================\n")
+        if(len(borrowed_books)==0):
+            print("No book are borrowed.")
+        else:
+            print("\n\n===========================")
+            print("The All books are:-\n")
+            for record in borrowed_books:
+                print(f"Student ID: {record[0]}, Name: {record[1]}, Class: {record[2]}, Book ID: {record[3]}, Book Name: {record[4]}, Borrow Date: {record[5]}")
+            print("===========================\n")
 
     
     def add_book(self):
@@ -227,7 +264,7 @@ class Library:
         except IndexError:
             print("Error: Incorrect date format. Please use dd/mm/yyyy.")
             return
-        insert_query = "insert into bookList(book_id,book_name,book_author,add_date,borrow_status) values (%s,%s,%s,%s)"
+        insert_query = "insert into bookList(book_id,book_name,book_author,add_date,borrow_status) values (%s,%s,%s,%s,%s)"
         insert_value = (a,name,author,formatted_date,0)
         db_cursor.execute(insert_query,insert_value)
         myDb.commit()
@@ -235,12 +272,18 @@ class Library:
     
     def display_existing_books(self):
         query="SELECT * FROM bookList"
-        listOfBook = db_cursor.fetchall(query)
-        for book in listOfBook:
-            if(book[4]):
-                print(f"{book[0]}-{book[1]}-By, {book[2]}, add on: {book[3]}, Borrow status- Yes")
-            else:
-                print(f"{book[0]}-{book[1]}-By, {book[2]}, add on: {book[3]}, Borrow status- No")
+        db_cursor.execute(query)
+        listOfBook = db_cursor.fetchall()
+        if(len(listOfBook)==0):
+            print("No book are borrowed.")
+        else:
+            print("\n\n===========================")
+            print("The all books are:-\n")
+            for book in listOfBook:
+                if(book[4]):
+                    print(f"{book[0]}-{book[1]}-By, {book[2]}, add on: {book[3]}, Borrow status- Yes")
+                else:
+                    print(f"{book[0]}-{book[1]}-By, {book[2]}, add on: {book[3]}, Borrow status- No")
 
 class Student:
     def student_option(self):
@@ -254,7 +297,7 @@ class Student:
             print("===========================\n")
             option=int(input("Enter:-"))
             if option == 1:
-                self.display_non_borrowed_books()
+                self.display_non_borrowed_book()
             elif option == 2:
                 self.borrow_book()
             elif option == 3:
@@ -262,6 +305,7 @@ class Student:
             elif option == 4:
                 self.update_borrow_date()
             elif option == 5:
+                print("\nEntering Main Dashbord:-\n")
                 print("Exiting...")
                 return
             else:
@@ -271,11 +315,14 @@ class Student:
         query = "SELECT * FROM bookList WHERE borrow_status=0;"
         db_cursor.execute(query)
         non_borrow_books = db_cursor.fetchall()
-        print("\n\n===========================")
-        print("The avalable books are:-\n")
-        for record in non_borrow_books:
-            print(f"Book ID: {record[0]}, Book Name: {record[1]}, Book Author: {record[2]}")
-        print("===========================\n")
+        if(len(non_borrow_books)==0):
+            print("No book are borrowed.")
+        else:
+            print("\n\n===========================")
+            print("The avalable books are:-\n")
+            for record in non_borrow_books:
+                print(f"Book ID: {record[0]}, Book Name: {record[1]}, Book Author: {record[2]}")
+            print("===========================\n")
     
     def borrow_book(self):
         self.display_non_borrowed_book()
@@ -308,8 +355,11 @@ class Student:
             a=db_cursor.fetchall()
             if any(book_id == str(book[0]) for book in a):
                 query="delete from student_borrow_book where student_id=%s and book_id= %s;"
-                db_cursor(query,(stu_id,book_id))
+                db_cursor.execute(query,(stu_id,book_id))
+                update_query="UPDATE bookList SET borrow_status = %s WHERE book_id = %s "
+                db_cursor.execute(update_query,(0,book_id))
                 myDb.commit()
+                print("Book return Successfully.")
             else:
                 print("Book id isn't matched.")
                 return
@@ -317,12 +367,11 @@ class Student:
             print("Student id isn't matched.")
             return
 
-
     def update_borrow_date(self):
         print("\n\n===========================")
         stu_id=input("Enter Student Id:-")
         book_id=input("Enter Book Id:-")
-        date=input("Enter the date of addition (in form dd/mm/yyyy):- ")
+        date=input("Enter the new date (in form dd/mm/yyyy):- ")
         print("===========================\n")
         try:
             date_parts = date.split('/')
@@ -343,8 +392,6 @@ class Student:
                 print("Book id doesn't match.")
         else:
             print("Student id doesn't match.")
-
-
 
 if __name__ == "__main__":
     signup_instance = Signup()
