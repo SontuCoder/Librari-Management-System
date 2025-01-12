@@ -1,6 +1,6 @@
 # Library Management System
 
-![Library Logo](./public/logo.jpg)
+<img src="./public/logo.jpg" width="50px" />
 
 ## Author: *Subhadip Maity*
 
@@ -48,13 +48,13 @@ The Library Management System is a Python-based application that provides functi
 
 ## Project Screenshots
 - **Main Menu**  
-  ![Main Menu](./public/Screenshot%202025-01-12%20150343.png)
+  <img src="./public/Screenshot 2025-01-12 150343.png" width="500px" />
 
 - **Student Menu**  
-  ![Student Menu](./public/Screenshot%202025-01-12%20150809.png)
+  <img src="./public/Screenshot 2025-01-12 150809.png" width="500px" />
 
 - **Book List**  
-  ![Book List](./public/Screenshot%202025-01-12%20150825.png)
+  <img src="./public/Screenshot 2025-01-12 150825.png" width="500px" />
 
 ---
 
