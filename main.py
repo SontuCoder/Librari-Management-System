@@ -1,7 +1,7 @@
 # from dbm.ndbm import library
 import random 
 import mysql.connector as myConn
-myDb = myConn.connect(host="127.0.0.1",user="root",password="Sontu@123",database="library")
+myDb = myConn.connect(host="127.0.0.1",user="user_name",password="pass_word",database="db_name")
 db_cursor = myDb.cursor()
 
 class Signup:
